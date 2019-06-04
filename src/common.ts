@@ -14,18 +14,13 @@ export const defaultTags:ResourceTag[] = [
     }
 ];
 
-export function dappNameTag(dappName:string):ResourceTag {
-    return {
-        Key: "DappName",
-        Value: dappName
-    }
-}
-
-export function dappOwnerTag(dappOwner:string):ResourceTag {
-    return {
-        Key: "DappOwner",
-        Value: dappOwner
-    }
+export enum DappStates {
+    CREATING = 'CREATING',
+    BUILDING_DAPP = 'BUILDING_DAPP',
+    AVAILABLE = 'AVAILABLE',
+    DELETING = 'DELETING',
+    FAILED = 'FAILED',
+    DEPOSED = 'DEPOSED'
 }
 
 /*
@@ -64,44 +59,6 @@ export function addAwsPromiseRetries<ReturnType>(promiseGenerator:()=>Promise<Re
     return p;
 }
 
-export interface ResponseOptions {
-    isErr? : boolean
-    isCreate? : boolean
-}
-
-export enum DappOperations {
-    create = 'create',
-    update = 'update',
-    delete = 'delete'
-}
-
-export enum DappStates {
-    CREATING = 'CREATING',
-    BUILDING_DAPP = 'BUILDING_DAPP',
-    AVAILABLE = 'AVAILABLE',
-    DELETING = 'DELETING',
-    FAILED = 'FAILED',
-    DEPOSED = 'DEPOSED'
-}
-
-export enum DappTiers {
-    POC = 'POC', // TODO: Remove this legacy tier
-    STANDARD = 'STANDARD',
-    PROFESSIONAL = 'PROFESSIONAL',
-    ENTERPRISE = 'ENTERPRISE'
-}
-
-export type ProcessorResponses = 'process' | 'ignore' | 'retry';
-
-export interface DappSeedArgs {
-    dappName: string
-    web3URL: string
-    guardianURL: string 
-    abi:string
-    addr:string
-    cdnURL:string
-}
-
 export default { 
-    defaultTags, dappNameTag, dappOwnerTag, addAwsPromiseRetries
+    defaultTags, addAwsPromiseRetries
 };

@@ -21,12 +21,9 @@
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
     "aws-sdk": "^2.424.0",
-    "node-zip": "^1.1.1",
-    "shelljs": "^0.8.3",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@types/shelljs": "^0.8.5",
     "@types/uuid": "^3.4.4"
   }
 }
