@@ -1,0 +1,32 @@
+{
+  "name": "dappbot-service-lambda",
+  "version": "0.0.1",
+  "description": "AWS Lambda function to perform backend Dappbot services",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "chmod 744 ./build-bundle.sh",
+    "build": "./build-bundle.sh dappbot-service-lambda.zip"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eximchain/dappbot-service-lambda.git"
+  },
+  "author": "Louis Lamia",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Eximchain/dappbot-service-lambda/issues"
+  },
+  "homepage": "https://github.com/Eximchain/dappbot-service-lambda#readme",
+  "dependencies": {
+    "@sendgrid/mail": "^6.4.0",
+    "aws-sdk": "^2.424.0",
+    "node-zip": "^1.1.1",
+    "shelljs": "^0.8.3",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/shelljs": "^0.8.5",
+    "@types/uuid": "^3.4.4"
+  }
+}
