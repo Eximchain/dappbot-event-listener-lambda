@@ -30,10 +30,17 @@ async function postPipelineBuildJob({ data, id }:CodePipelineJob) {
   }
 }
 
+async function periodicCleanup() {
+  console.log('Performing Periodic Cleanup');
+  // TODO
+  return {};
+}
+
 function dnsNameFromDappName(dappName:string) {
   return dappName.concat(dnsRoot);
 }
 
 export default {
-  postPipelineBuild : postPipelineBuildJob
+  postPipelineBuild : postPipelineBuildJob,
+  periodicCleanup : periodicCleanup
 }

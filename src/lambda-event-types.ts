@@ -1,3 +1,5 @@
+// Types sourced from: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/index.d.ts
+
 // SQS
 // https://docs.aws.amazon.com/lambda/latest/dg/invoking-lambda-function.html#supported-event-source-sqs
 export interface SQSRecord {
@@ -90,4 +92,39 @@ export interface CodePipelineJob {
 export interface CodePipelineEvent {
   "CodePipeline.job": CodePipelineJob
 };
+
+// SNS "event"
+export interface SNSMessageAttribute {
+  Type: string;
+  Value: string;
+}
+
+export interface SNSMessageAttributes {
+  [name: string]: SNSMessageAttribute;
+}
+
+export interface SNSMessage {
+  SignatureVersion: string;
+  Timestamp: string;
+  Signature: string;
+  SigningCertUrl: string;
+  MessageId: string;
+  Message: string;
+  MessageAttributes: SNSMessageAttributes;
+  Type: string;
+  UnsubscribeUrl: string;
+  TopicArn: string;
+  Subject: string;
+}
+
+export interface SNSEventRecord {
+  EventVersion: string;
+  EventSubscriptionArn: string;
+  EventSource: string;
+  Sns: SNSMessage;
+}
+
+export interface SNSEvent {
+  Records: SNSEventRecord[];
+}
 
