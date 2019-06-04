@@ -1,9 +1,7 @@
-import { CodePipelineJob } from '../lambda-event-types';
-import { dnsRoot } from '../env';
-import dynamoDB from './dynamoDB';
-import s3 from './s3'; 
-import codepipeline from './codepipeline';
-import sendgrid from './sendgrid';
+import { CodePipelineJob } from './lambda-event-types';
+import { dnsRoot } from './env';
+import services from './services';
+const { dynamoDB, s3, codepipeline, sendgrid } = services;
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -11,7 +9,7 @@ import sendgrid from './sendgrid';
 //
 // Below function is called by index, it receives the event["CodePipeline.job"] field.
 
-async function postPipelineCleanup({ data, id }:CodePipelineJob) {
+async function postPipelineBuildJob({ data, id }:CodePipelineJob) {
   const { actionConfiguration } = data;
   // TODO: Get Dapp DNS from here
   const { OwnerEmail, DestinationBucket, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters) 
@@ -37,5 +35,5 @@ function dnsNameFromDappName(dappName:string) {
 }
 
 export default {
-  postPipelineCleanup : postPipelineCleanup
+  postPipelineBuild : postPipelineBuildJob
 }

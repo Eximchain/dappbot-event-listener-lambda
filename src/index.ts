@@ -1,5 +1,5 @@
 'use strict';
-import cleanup from './services/cleanup';
+import jobs from './jobs';
 import { CodePipelineEvent } from './lambda-event-types';
 
 type Event = CodePipelineEvent;
@@ -8,7 +8,7 @@ exports.handler = async (event:Event) => {
 
     // Pass CodePipeline events straight to cleanup function
     if ('CodePipeline.job' in event){
-        return cleanup.postPipelineCleanup(event['CodePipeline.job']);
+        return jobs.postPipelineBuild(event['CodePipeline.job']);
     }
 
     console.log("Doing Nothing");
