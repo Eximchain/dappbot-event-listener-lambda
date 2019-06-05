@@ -1,7 +1,7 @@
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
-const { dynamoDB, s3, codepipeline, sendgrid } = services;
+const { cloudfront, dynamoDB, s3, codepipeline, sendgrid } = services;
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -32,7 +32,7 @@ async function postPipelineBuildJob({ data, id }:CodePipelineJob) {
 
 async function periodicCleanup() {
   console.log('Performing Periodic Cleanup');
-  // TODO
+  await cloudfront.cleanupDisabledDistros();
   return {};
 }
 
