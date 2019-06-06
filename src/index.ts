@@ -7,8 +7,16 @@ exports.handler = async (event:Event) => {
     console.log("request: " + JSON.stringify(event));
 
     // CodePipeline Event
-    if ('CodePipeline.job' in event){
-        return jobs.postPocPipelineBuild(event['CodePipeline.job']);
+    if ('CodePipeline.job' in event) {
+        let userParams = JSON.parse(event['CodePipeline.job'].data.actionConfiguration.configuration.UserParameters);
+        let job = userParams.Job;
+        switch (job) {
+            case PipelineJobs.POC_CLEANUP:
+                return jobs.postPocPipelineBuild(event['CodePipeline.job']);
+            default:
+                console.log(`CodePipeline Job ${job} not recognized`);
+                return {};
+        }
     }
 
     // Handle events with Records
@@ -35,4 +43,9 @@ async function processSnsRecord(record:SNSEventRecord) {
             console.log(`Skipping unknown SNS command ${msgBody.command}`);
             return {};
     }
+}
+
+enum PipelineJobs {
+    POC_CLEANUP = 'POC_CLEANUP',
+    ENTERPRISE_GITHUB_COMMIT = 'ENTERPRISE_GITHUB_COMMIT'
 }
