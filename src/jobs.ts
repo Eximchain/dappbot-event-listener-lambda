@@ -12,7 +12,7 @@ const { cloudfront, dynamoDB, s3, codepipeline, sendgrid } = services;
 async function postPocPipelineBuildJob({ data, id }:CodePipelineJob) {
   const { actionConfiguration } = data;
   // TODO: Get Dapp DNS from here
-  const { OwnerEmail, DestinationBucket, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters) 
+  const { OwnerEmail, DestinationBucket, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters);
 
   console.log("Successfully loaded all info to the clean function:");
   console.log(`OwnerEmail: ${OwnerEmail}; DappName: ${DappName}; DestinationBucket: ${DestinationBucket}`);
@@ -36,11 +36,26 @@ async function periodicCleanup() {
   return {};
 }
 
+async function enterpriseGithubCommitJob({ data, id }:CodePipelineJob) {
+  console.log("Enterprise Commit Job: ", data);
+  const { actionConfiguration } = data;
+  const { OwnerEmail, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters);
+
+  try {
+    return await codepipeline.completeJob(id);
+  } catch(err) {
+    console.log("Error committing to GitHub: ", err);
+    await codepipeline.failJob(id, err);
+    return await dynamoDB.setDappFailed(DappName);
+  }
+}
+
 function dnsNameFromDappName(dappName:string) {
   return dappName.concat(dnsRoot);
 }
 
 export default {
   postPocPipelineBuild : postPocPipelineBuildJob,
+  enterpriseGithubCommit : enterpriseGithubCommitJob,
   periodicCleanup : periodicCleanup
 }

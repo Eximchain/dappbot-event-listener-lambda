@@ -8,11 +8,14 @@ exports.handler = async (event:Event) => {
 
     // CodePipeline Event
     if ('CodePipeline.job' in event) {
-        let userParams = JSON.parse(event['CodePipeline.job'].data.actionConfiguration.configuration.UserParameters);
+        let pipelineEvent = event['CodePipeline.job'];
+        let userParams = JSON.parse(pipelineEvent.data.actionConfiguration.configuration.UserParameters);
         let job = userParams.Job;
         switch (job) {
             case PipelineJobs.POC_CLEANUP:
-                return jobs.postPocPipelineBuild(event['CodePipeline.job']);
+                return jobs.postPocPipelineBuild(pipelineEvent);
+            case PipelineJobs.ENTERPRISE_GITHUB_COMMIT:
+                return jobs.enterpriseGithubCommit(pipelineEvent);
             default:
                 console.log(`CodePipeline Job ${job} not recognized`);
                 return {};
