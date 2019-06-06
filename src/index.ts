@@ -8,7 +8,7 @@ exports.handler = async (event:Event) => {
 
     // CodePipeline Event
     if ('CodePipeline.job' in event){
-        return jobs.postPipelineBuild(event['CodePipeline.job']);
+        return jobs.postPocPipelineBuild(event['CodePipeline.job']);
     }
 
     // Handle events with Records
