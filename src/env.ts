@@ -14,6 +14,7 @@ export const dappseedBucket = process.env.DAPPSEED_BUCKET as string;
 export const wildcardCertArn = process.env.WILDCARD_CERT_ARN as string;
 export const cognitoUserPoolId = process.env.COGNITO_USER_POOL as string;
 export const sendgridApiKey = process.env.SENDGRID_API_KEY as string;
+export const githubToken = process.env.GITHUB_TOKEN as string;
 
 import AWSUnconfigured from 'aws-sdk';
 export const AWS = AWSUnconfigured;
@@ -22,5 +23,5 @@ AWS.config.update({region: awsRegion});
 export default { 
     AWS, awsRegion, tableName, r53HostedZoneId, dnsRoot, codebuildId, 
     lambdaFxnName, pipelineRoleArn, kmsKeyName, artifactBucket, 
-    dappseedBucket, wildcardCertArn, cognitoUserPoolId, sendgridApiKey
+    dappseedBucket, wildcardCertArn, cognitoUserPoolId, sendgridApiKey, githubToken
 };

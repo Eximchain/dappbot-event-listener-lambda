@@ -19,8 +19,12 @@
   },
   "homepage": "https://github.com/Eximchain/dappbot-service-lambda#readme",
   "dependencies": {
+    "@octokit/rest": "^16.28.1",
     "@sendgrid/mail": "^6.4.0",
+    "@types/shelljs": "^0.8.5",
     "aws-sdk": "^2.424.0",
+    "node-zip": "^1.1.1",
+    "shelljs": "^0.8.3",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

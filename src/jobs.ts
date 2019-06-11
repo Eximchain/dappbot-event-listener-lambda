@@ -1,7 +1,7 @@
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
-const { cloudfront, dynamoDB, s3, codepipeline, sendgrid } = services;
+const { cloudfront, dynamoDB, s3, codepipeline, sendgrid, github } = services;
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -38,10 +38,15 @@ async function periodicCleanup() {
 
 async function enterpriseGithubCommitJob({ data, id }:CodePipelineJob) {
   console.log("Enterprise Commit Job: ", data);
+  let inputArtifact = data.inputArtifacts[0];
+  let artifactLocation = inputArtifact.location.s3Location;
+  let artifactCredentials = data.artifactCredentials;
   const { actionConfiguration } = data;
   const { OwnerEmail, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters);
 
   try {
+    let artifact = await s3.downloadArtifact(artifactLocation, artifactCredentials);
+    await github.commitArtifact(artifact);
     return await codepipeline.completeJob(id);
   } catch(err) {
     console.log("Error committing to GitHub: ", err);

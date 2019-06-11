@@ -1,6 +1,9 @@
+// @ts-ignore Alas, there are no published bindings for node-zip.
+import zip from 'node-zip';
 import { addAwsPromiseRetries, ResourceTag } from '../common';
 import { AWS, awsRegion } from '../env';
 import { ListObjectsOutput, ObjectKey } from 'aws-sdk/clients/s3';
+import { S3ArtifactLocation, Credentials } from '../lambda-event-types';
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 function promiseDeleteS3Bucket(bucketName:string) {
@@ -140,8 +143,30 @@ function promiseGetS3Object(bucketName:string, objectKey:string) {
     return addAwsPromiseRetries(() => s3.getObject(params).promise(), maxRetries);
 }
 
+function promiseGetS3ObjectWithCredentials(bucketName:string, objectKey:string, credentials:Credentials) {
+    let maxRetries = 5;
+    const params = {
+        Bucket : bucketName,
+        Key : objectKey
+    }
+
+    let credentialClient = new AWS.S3({apiVersion: '2006-03-01', credentials: credentials});
+
+    return addAwsPromiseRetries(() => credentialClient.getObject(params).promise(), maxRetries);
+}
+
 function getS3BucketEndpoint(bucketName:string) {
     return bucketName.concat(".s3.").concat(awsRegion).concat(".amazonaws.com");
+}
+
+async function downloadArtifact(artifactLocation:S3ArtifactLocation, artifactCredentials:Credentials) {
+    let getObjectResult = await promiseGetS3ObjectWithCredentials(artifactLocation.bucketName, artifactLocation.objectKey, artifactCredentials);
+    console.log("Successfully retrieved artifact: ", getObjectResult);
+
+    let zipArtifact = zip(getObjectResult.Body, {base64: false, checkCRC32: true});
+    console.log("Loaded Zip Artifact");
+
+    return zipArtifact;
 }
 
 export default {
@@ -154,5 +179,6 @@ export default {
     getObject : promiseGetS3Object,
     makeObjectNoCache : promiseMakeObjectNoCache,
     enableBucketCors : promiseEnableS3BucketCORS,
-    bucketEndpoint : getS3BucketEndpoint
+    bucketEndpoint : getS3BucketEndpoint,
+    downloadArtifact : downloadArtifact
 }
