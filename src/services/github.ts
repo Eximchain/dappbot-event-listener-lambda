@@ -12,26 +12,24 @@ const octokit = new Octokit({
     auth: token,
     userAgent: 'DappbotService v1.0'
 });
-const repoOwner = 'eximchain';
-const repoName = 'test-gh-api-2';
 const masterRefName = 'heads/master';
 
 
-async function commitArtifactToGithub(artifact:any) {
+async function commitArtifactToGithub(artifact:any, targetRepoName:string, targetRepoOwner:string) {
     if (!GITHUB_CONFIGURED) {
         console.log("Github Client not configured. Skipping committing artifacts to Github.");
         return;
     }
 
-    let masterRef = await getMasterRef();
-    let headCommit = await getCommit(masterRef.object.sha);
+    let masterRef = await getMasterRef(targetRepoName, targetRepoOwner);
+    let headCommit = await getCommit(targetRepoName, targetRepoOwner, masterRef.object.sha);
 
     let blobs:Map<string, GithubBlob> = new Map();
     for (let [filePath, fileObj] of Object.entries(artifact.files)) {
         let file = fileObj as NodeZipFile;
         let fileContent = fileAsBase64(file);
 
-        let blob = await createBlob(fileContent);
+        let blob = await createBlob(targetRepoName, targetRepoOwner, fileContent);
         blobs.set(filePath, blob);
         await sleep(250);
     }
@@ -47,16 +45,16 @@ async function commitArtifactToGithub(artifact:any) {
         })
     ));
 
-    let newTree = await createNewTree(headCommit.tree.sha, treeItems);
-    let newCommit = await createCommit(newTree.sha, masterRef.object.sha);
-    await pushCommit(newCommit.sha);
+    let newTree = await createNewTree(targetRepoName, targetRepoOwner, headCommit.tree.sha, treeItems);
+    let newCommit = await createCommit(targetRepoName, targetRepoOwner, newTree.sha, masterRef.object.sha);
+    await pushCommit(targetRepoName, targetRepoOwner, newCommit.sha);
 }
 
 function fileAsBase64(file:NodeZipFile) {
     return file.asNodeBuffer().toString('base64');
 }
 
-async function createBlob(base64Content:string):Promise<GithubBlob> {
+async function createBlob(repoName:string, repoOwner:string, base64Content:string):Promise<GithubBlob> {
     let params = {
         owner: repoOwner,
         repo: repoName,
@@ -69,7 +67,7 @@ async function createBlob(base64Content:string):Promise<GithubBlob> {
     return response.data;
 }
 
-async function getMasterRef() {
+async function getMasterRef(repoName:string, repoOwner:string) {
     let params = {
         owner: repoOwner,
         repo: repoName,
@@ -81,7 +79,7 @@ async function getMasterRef() {
     return response.data;
 }
 
-async function getCommit(commitSha:string) {
+async function getCommit(repoName:string, repoOwner:string, commitSha:string) {
     let params = {
         owner: repoOwner,
         repo: repoName,
@@ -93,7 +91,7 @@ async function getCommit(commitSha:string) {
     return response.data;
 }
 
-async function createNewTree(baseTreeSha:string, treeItems:TreeItem[]) {
+async function createNewTree(repoName:string, repoOwner:string, baseTreeSha:string, treeItems:TreeItem[]) {
     let params = {
         owner: repoOwner,
         repo: repoName,
@@ -106,7 +104,7 @@ async function createNewTree(baseTreeSha:string, treeItems:TreeItem[]) {
     return response.data;
 }
 
-async function createCommit(treeSha:string, parentSha:string) {
+async function createCommit(repoName:string, repoOwner:string, treeSha:string, parentSha:string) {
     let params = {
         owner: repoOwner,
         repo: repoName,
@@ -120,7 +118,7 @@ async function createCommit(treeSha:string, parentSha:string) {
     return response.data;
 }
 
-async function pushCommit(commitSha:string) {
+async function pushCommit(repoName:string, repoOwner:string, commitSha:string) {
     let params = {
         owner: repoOwner,
         repo: repoName,

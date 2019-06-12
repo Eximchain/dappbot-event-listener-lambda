@@ -42,11 +42,11 @@ async function enterpriseGithubCommitJob({ data, id }:CodePipelineJob) {
   let artifactLocation = inputArtifact.location.s3Location;
   let artifactCredentials = data.artifactCredentials;
   const { actionConfiguration } = data;
-  const { OwnerEmail, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters);
+  const { OwnerEmail, DappName, TargetRepoName, TargetRepoOwner } = JSON.parse(actionConfiguration.configuration.UserParameters);
 
   try {
     let artifact = await s3.downloadArtifact(artifactLocation, artifactCredentials);
-    await github.commitArtifact(artifact);
+    await github.commitArtifact(artifact, TargetRepoName, TargetRepoOwner);
     return await codepipeline.completeJob(id);
   } catch(err) {
     console.log("Error committing to GitHub: ", err);
