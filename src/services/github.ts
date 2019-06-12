@@ -31,6 +31,7 @@ async function commitArtifactToGithub(artifact:any, targetRepoName:string, targe
 
         let blob = await createBlob(targetRepoName, targetRepoOwner, fileContent);
         blobs.set(filePath, blob);
+        // Sleep required to avoid triggering the Github "abuse detection mechanism"
         await sleep(250);
     }
     console.log("All blobs created");
