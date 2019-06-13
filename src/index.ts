@@ -13,7 +13,7 @@ exports.handler = async (event:Event) => {
         let job = userParams.Job;
         switch (job) {
             case PipelineJobs.POC_CLEANUP:
-                return jobs.postPocPipelineBuild(pipelineEvent);
+                return jobs.postPipelineBuild(pipelineEvent);
             case PipelineJobs.ENTERPRISE_GITHUB_COMMIT:
                 return jobs.enterpriseGithubCommit(pipelineEvent);
             default:

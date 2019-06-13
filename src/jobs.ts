@@ -9,7 +9,7 @@ const { cloudfront, dynamoDB, s3, codepipeline, sendgrid, github } = services;
 //
 // Below function is called by index, it receives the event["CodePipeline.job"] field.
 
-async function postPocPipelineBuildJob({ data, id }:CodePipelineJob) {
+async function postPipelineBuildJob({ data, id }:CodePipelineJob) {
   const { actionConfiguration } = data;
   // TODO: Get Dapp DNS from here
   const { OwnerEmail, DestinationBucket, DappName } = JSON.parse(actionConfiguration.configuration.UserParameters);
@@ -60,7 +60,7 @@ function dnsNameFromDappName(dappName:string) {
 }
 
 export default {
-  postPocPipelineBuild : postPocPipelineBuildJob,
+  postPipelineBuild : postPipelineBuildJob,
   enterpriseGithubCommit : enterpriseGithubCommitJob,
   periodicCleanup : periodicCleanup
 }
