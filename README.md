@@ -1,2 +1,2 @@
-# dappbot-service-lambda
-Lambda function which handles miscellaneous backend services for Dappbot
+# dappbot-event-listener-lambda
+Lambda function which listens to events for miscellaneous backend services for Dappbot

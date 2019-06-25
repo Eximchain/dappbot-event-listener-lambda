@@ -1,23 +1,23 @@
 {
-  "name": "dappbot-service-lambda",
+  "name": "dappbot-event-listener-lambda",
   "version": "0.0.1",
   "description": "AWS Lambda function to perform backend Dappbot services",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "chmod 744 ./build-bundle.sh",
-    "build": "./build-bundle.sh dappbot-service-lambda.zip"
+    "build": "./build-bundle.sh dappbot-event-listener-lambda.zip"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Eximchain/dappbot-service-lambda.git"
+    "url": "git+https://github.com/Eximchain/dappbot-event-listener-lambda.git"
   },
   "author": "Louis Lamia",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/Eximchain/dappbot-service-lambda/issues"
+    "url": "https://github.com/Eximchain/dappbot-event-listener-lambda/issues"
   },
-  "homepage": "https://github.com/Eximchain/dappbot-service-lambda#readme",
+  "homepage": "https://github.com/Eximchain/dappbot-event-listener-lambda#readme",
   "dependencies": {
     "@octokit/rest": "^16.28.1",
     "@sendgrid/mail": "^6.4.0",
