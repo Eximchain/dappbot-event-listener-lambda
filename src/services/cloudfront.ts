@@ -140,9 +140,9 @@ function filterIdentifiersForCleanup(identifier:CloudfrontIdentifierWithTags) {
         return false;
     }
 
-    let applicationAbiClerkTags = tags.filter(tag => tag.Key === 'Application' && tag.Value === 'AbiClerk');
-    let managedByAbiClerkTags = tags.filter(tag => tag.Key === 'ManagedBy' && tag.Value === 'AbiClerk');
-    return applicationAbiClerkTags.length === 1 && managedByAbiClerkTags.length === 1;
+    let applicationDappBotTags = tags.filter(tag => tag.Key === 'Application' && tag.Value === 'DappBot');
+    let managedByDappBotTags = tags.filter(tag => tag.Key === 'ManagedBy' && tag.Value === 'DappBot');
+    return applicationDappBotTags.length === 1 && managedByDappBotTags.length === 1;
 }
 
 interface CloudfrontIdentifier {

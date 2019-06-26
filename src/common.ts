@@ -6,11 +6,11 @@ export interface ResourceTag {
 export const defaultTags:ResourceTag[] = [
     {
         Key: "Application",
-        Value: "AbiClerk"
+        Value: "DappBot"
     },
     {
         Key: "ManagedBy",
-        Value: "AbiClerk"
+        Value: "DappBot"
     }
 ];
 
