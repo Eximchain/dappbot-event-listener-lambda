@@ -1,6 +1,6 @@
 import { PutItemInputAttributeMap, AttributeMap } from "aws-sdk/clients/dynamodb";
 import { addAwsPromiseRetries, DappStates } from '../common';
-import { AWS, tableName } from '../env';
+import { AWS, dappTableName, lapsedUsersTableName } from '../env';
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
 function serializeDdbKey(dappName:string) {
@@ -49,7 +49,7 @@ function promiseSetItemAvailable(dbItem:PutItemInputAttributeMap) {
 function promisePutRawDappItem(item:PutItemInputAttributeMap) {
     let maxRetries = 5;
     let putItemParams = {
-        TableName: tableName,
+        TableName: dappTableName,
         Item: item
     };
 
@@ -59,7 +59,7 @@ function promisePutRawDappItem(item:PutItemInputAttributeMap) {
 function promiseGetDappItem(dappName:string) {
     let maxRetries = 5;
     let getItemParams = {
-        TableName: tableName,
+        TableName: dappTableName,
         Key: serializeDdbKey(dappName)
     };
 
@@ -69,7 +69,7 @@ function promiseGetDappItem(dappName:string) {
 function promiseDeleteDappItem(dappName:string) {
     let maxRetries = 5;
     let deleteItemParams = {
-        TableName: tableName,
+        TableName: dappTableName,
         Key: serializeDdbKey(dappName)
     };
 
@@ -79,7 +79,7 @@ function promiseDeleteDappItem(dappName:string) {
 function promiseGetItemsByOwner(ownerEmail:string) {
     let maxRetries = 5;
     let getItemParams = {
-        TableName: tableName,
+        TableName: dappTableName,
         IndexName: 'OwnerEmailIndex',
         ExpressionAttributeNames: {
             "#OE": "OwnerEmail"
@@ -96,6 +96,43 @@ function promiseGetItemsByOwner(ownerEmail:string) {
     return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
 }
 
+function serializeLapsedUserItem(userEmail:string) {
+    let now = new Date().toISOString();
+    // Required Params
+    let item:PutItemInputAttributeMap = {
+        'UserEmail' : {S: userEmail},
+        'LapsedAt' : {S: now}
+    };
+    return item;
+}
+
+function serializeLapsedUserKey(userEmail:string) {
+    let key:PutItemInputAttributeMap = {
+        'UserEmail' : {S: userEmail}
+    };
+    return key;
+}
+
+function promisePutLapsedUser(lapsedUser:string) {
+    let maxRetries = 5;
+    let putItemParams = {
+        TableName: lapsedUsersTableName,
+        Item: serializeLapsedUserItem(lapsedUser)
+    };
+
+    return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
+}
+
+function promiseDeleteLapsedUser(lapsedUser:string) {
+    let maxRetries = 5;
+    let deleteItemParams = {
+        TableName: lapsedUsersTableName,
+        Key: serializeLapsedUserKey(lapsedUser)
+    };
+
+    return addAwsPromiseRetries(() => ddb.deleteItem(deleteItemParams).promise(), maxRetries);
+}
+
 export default {
     getItem : promiseGetDappItem,
     deleteItem : promiseDeleteDappItem,
@@ -103,5 +140,7 @@ export default {
     setDappAvailable : promiseSetDappAvailable,
     setDappFailed : promiseSetDappFailed,
     setItemBuilding : promiseSetItemBuilding,
-    setItemAvailable : promiseSetItemAvailable
+    setItemAvailable : promiseSetItemAvailable,
+    putLapsedUser : promisePutLapsedUser,
+    deleteLapsedUser : promiseDeleteLapsedUser
 }

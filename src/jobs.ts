@@ -1,3 +1,4 @@
+import { PaymentStatus } from './common';
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
@@ -55,6 +56,19 @@ async function enterpriseGithubCommitJob({ data, id }:CodePipelineJob) {
   }
 }
 
+async function handlePaymentStatus(userEmail:string, status:PaymentStatus) {
+  switch (status) {
+    case PaymentStatus.LAPSED:
+      console.log(`Handling ${status} payment status for user ${userEmail}`);
+      return await dynamoDB.putLapsedUser(userEmail);
+    case PaymentStatus.ACTIVE:
+        console.log(`Handling ${status} payment status for user ${userEmail}`);
+      return await dynamoDB.deleteLapsedUser(userEmail);
+    default:
+      console.log(`No Handler for payment status ${status}`);
+  }
+}
+
 function dnsNameFromDappName(dappName:string) {
   return dappName.concat(dnsRoot);
 }
@@ -62,5 +76,6 @@ function dnsNameFromDappName(dappName:string) {
 export default {
   postPipelineBuild : postPipelineBuildJob,
   enterpriseGithubCommit : enterpriseGithubCommitJob,
-  periodicCleanup : periodicCleanup
+  periodicCleanup : periodicCleanup,
+  handlePaymentStatus : handlePaymentStatus
 }

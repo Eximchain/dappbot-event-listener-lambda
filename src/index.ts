@@ -39,11 +39,13 @@ exports.handler = async (event:Event) => {
 async function processSnsRecord(record:SNSEventRecord) {
     let message = record.Sns;
     let msgBody = JSON.parse(message.Message);
-    switch (msgBody.command) {
-        case 'cleanup':
+    switch (msgBody.event) {
+        case SNSJobs.CLEANUP:
             return jobs.periodicCleanup();
+        case SNSJobs.PAYMENT_STATUS:
+            return jobs.handlePaymentStatus(msgBody.email, msgBody.status);
         default:
-            console.log(`Skipping unknown SNS command ${msgBody.command}`);
+            console.log(`Skipping unknown SNS event ${msgBody.event}`);
             return {};
     }
 }
@@ -51,4 +53,9 @@ async function processSnsRecord(record:SNSEventRecord) {
 enum PipelineJobs {
     POC_CLEANUP = 'POC_CLEANUP',
     ENTERPRISE_GITHUB_COMMIT = 'ENTERPRISE_GITHUB_COMMIT'
+}
+
+enum SNSJobs {
+    CLEANUP = 'CLEANUP',
+    PAYMENT_STATUS = 'PAYMENT_STATUS'
 }

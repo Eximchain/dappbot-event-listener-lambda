@@ -23,6 +23,13 @@ export enum DappStates {
     DEPOSED = 'DEPOSED'
 }
 
+export enum PaymentStatus {
+    ACTIVE = 'ACTIVE',
+    LAPSED = 'LAPSED',
+    FAILED = 'FAILED',
+    CANCELLED = 'CANCELLED'
+}
+
 /*
 Returns a Promise that rejects with reason after msDelay milliseconds
 */

@@ -3,7 +3,8 @@ export const awsRegion = process.env.AWS_REGION as string;
 export const lambdaFxnName = process.env.AWS_LAMBDA_FUNCTION_NAME as string;
 
 // Provided to us via Terraform
-export const tableName = process.env.DDB_TABLE as string;
+export const dappTableName = process.env.DAPP_TABLE as string;
+export const lapsedUsersTableName = process.env.LAPSED_USERS_TABLE as string;
 export const r53HostedZoneId = process.env.R53_HOSTED_ZONE_ID as string;
 export const dnsRoot = process.env.DNS_ROOT as string;
 export const codebuildId = process.env.CODEBUILD_ID as string;
@@ -21,7 +22,7 @@ export const AWS = AWSUnconfigured;
 AWS.config.update({region: awsRegion});
 
 export default { 
-    AWS, awsRegion, tableName, r53HostedZoneId, dnsRoot, codebuildId, 
+    AWS, awsRegion, dappTableName, r53HostedZoneId, dnsRoot, codebuildId, 
     lambdaFxnName, pipelineRoleArn, kmsKeyName, artifactBucket, 
     dappseedBucket, wildcardCertArn, cognitoUserPoolId, sendgridApiKey, githubToken
 };
