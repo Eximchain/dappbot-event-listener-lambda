@@ -2,7 +2,10 @@ import { PaymentStatus } from './common';
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
-const { cloudfront, dynamoDB, s3, codepipeline, sendgrid, github } = services;
+import cognito from './services/cognito';
+const { cloudfront, dynamoDB, s3, sqs, codepipeline, sendgrid, github } = services;
+
+const deleteMethodName = 'delete';
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -33,7 +36,45 @@ async function postPipelineBuildJob({ data, id }:CodePipelineJob) {
 
 async function periodicCleanup() {
   console.log('Performing Periodic Cleanup');
+
+  console.log('Cleaning up CloudFront Distributions');
   await cloudfront.cleanupDisabledDistros();
+  console.log('Cloudfront Distribution Cleanup successful')
+  
+  console.log('Cleaning Up Lapsed Users');
+  let potentialFailedUsers = await dynamoDB.getPotentialFailedUsers();
+  console.log("Checking Potential Failed Users: ", potentialFailedUsers);
+  let splitUsers = await cognito.confirmFailedUsers(potentialFailedUsers);
+  console.log("Users Split by Cognito Status: ", splitUsers);
+  let failedUsers = splitUsers.Failed;
+  let activeUsers = splitUsers.Active;
+
+  for (let i in activeUsers) {
+    let activeUser = activeUsers[i];
+
+    console.log('Removing non-failed user from LAPSED list: ', activeUser);
+    await dynamoDB.deleteLapsedUser(activeUser);
+  }
+
+  for (let i in failedUsers) {
+    let failedUser = failedUsers[i];
+
+    console.log('Cleaning Dapps for failed user: ', failedUser);
+    let dappsToClean = await dynamoDB.getDappNamesByOwner(failedUser);
+
+    for (let j in dappsToClean) {
+      let dappName = dappsToClean[j];
+      let sqsMessageBody = {
+        Method: deleteMethodName,
+        DappName: dappName
+      };
+      await sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
+    }
+    await dynamoDB.deleteLapsedUser(failedUser);
+    console.log('Successfully Cleaned Dapps for failed user: ', failedUser);
+  }
+
+  console.log('Periodic Cleanup Successful');
   return {};
 }
 

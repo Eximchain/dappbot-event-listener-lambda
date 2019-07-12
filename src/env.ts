@@ -16,6 +16,7 @@ export const wildcardCertArn = process.env.WILDCARD_CERT_ARN as string;
 export const cognitoUserPoolId = process.env.COGNITO_USER_POOL as string;
 export const sendgridApiKey = process.env.SENDGRID_API_KEY as string;
 export const githubToken = process.env.GITHUB_TOKEN as string;
+export const sqsQueue = process.env.SQS_QUEUE as string;
 
 import AWSUnconfigured from 'aws-sdk';
 export const AWS = AWSUnconfigured;

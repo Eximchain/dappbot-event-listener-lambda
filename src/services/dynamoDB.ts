@@ -96,6 +96,21 @@ function promiseGetItemsByOwner(ownerEmail:string) {
     return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
 }
 
+async function getDappNamesByOwner(owner:string):Promise<string[]> {
+    let dappList:string[] = [];
+    let itemsByOwnerResponse = await promiseGetItemsByOwner(owner);
+    let itemsByOwner = itemsByOwnerResponse.Items;
+    if (!itemsByOwner) {
+        return dappList;
+    }
+    for (let i in itemsByOwner) {
+        let item = itemsByOwner[i];
+        let dappName = item.DappName.S as string;
+        dappList.push(dappName);
+    }
+    return dappList;
+}
+
 function serializeLapsedUserItem(userEmail:string) {
     let now = new Date().toISOString();
     // Required Params
@@ -133,6 +148,51 @@ function promiseDeleteLapsedUser(lapsedUser:string) {
     return addAwsPromiseRetries(() => ddb.deleteItem(deleteItemParams).promise(), maxRetries);
 }
 
+function promiseScanLapsedUsers() {
+    let maxRetries = 5;
+    let scanParams = {
+        TableName: lapsedUsersTableName
+    };
+
+    return addAwsPromiseRetries(() => ddb.scan(scanParams).promise(), maxRetries);
+}
+
+async function getPotentialFailedUsers():Promise<string[]> {
+    const lapsedHoursBeforeFailure = 72;
+
+    let response = await promiseScanLapsedUsers();
+
+    let potentialLapsedUsers:string[] = [];
+    let items = response.Items;
+    if (!items) {
+        return [];
+    }
+
+    for (let i in items) {
+        let item = items[i];
+
+        let userEmail:string = item.UserEmail.S as string;
+        let lapsedAtIsoString:string = item.LapsedAt.S as string;
+
+        let lapsedAt = Date.parse(lapsedAtIsoString);
+        let now = Date.now();
+        let msSinceLapse = now - lapsedAt;
+        let hrsSinceLapse = msToHrs(msSinceLapse);
+
+        if (hrsSinceLapse > lapsedHoursBeforeFailure) {
+            potentialLapsedUsers.push(userEmail);
+        }
+    }
+    return potentialLapsedUsers;
+}
+
+function msToHrs(millis:number) {
+    // 1000 ms / s
+    // 60 s / min
+    // 60 min / hr
+    return millis / (60*60*1000);
+}
+
 export default {
     getItem : promiseGetDappItem,
     deleteItem : promiseDeleteDappItem,
@@ -142,5 +202,7 @@ export default {
     setItemBuilding : promiseSetItemBuilding,
     setItemAvailable : promiseSetItemAvailable,
     putLapsedUser : promisePutLapsedUser,
-    deleteLapsedUser : promiseDeleteLapsedUser
+    deleteLapsedUser : promiseDeleteLapsedUser,
+    getPotentialFailedUsers : getPotentialFailedUsers,
+    getDappNamesByOwner : getDappNamesByOwner
 }
