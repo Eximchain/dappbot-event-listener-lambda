@@ -18,6 +18,9 @@ export const sendgridApiKey = process.env.SENDGRID_API_KEY as string;
 export const githubToken = process.env.GITHUB_TOKEN as string;
 export const sqsQueue = process.env.SQS_QUEUE as string;
 
+const paymentLapsedGracePeriodHrsStr = process.env.PAYMENT_LAPSED_GRACE_PERIOD_HRS as string;
+export const paymentLapsedGracePeriodHrs = Number(paymentLapsedGracePeriodHrsStr);
+
 import AWSUnconfigured from 'aws-sdk';
 export const AWS = AWSUnconfigured;
 AWS.config.update({region: awsRegion});

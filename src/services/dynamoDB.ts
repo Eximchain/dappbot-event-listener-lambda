@@ -1,6 +1,6 @@
 import { PutItemInputAttributeMap, AttributeMap } from "aws-sdk/clients/dynamodb";
 import { addAwsPromiseRetries, DappStates } from '../common';
-import { AWS, dappTableName, lapsedUsersTableName } from '../env';
+import { AWS, dappTableName, lapsedUsersTableName, paymentLapsedGracePeriodHrs } from '../env';
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
 function serializeDdbKey(dappName:string) {
@@ -158,8 +158,6 @@ function promiseScanLapsedUsers() {
 }
 
 async function getPotentialFailedUsers():Promise<string[]> {
-    const lapsedHoursBeforeFailure = 72;
-
     let response = await promiseScanLapsedUsers();
 
     let potentialLapsedUsers:string[] = [];
@@ -179,7 +177,7 @@ async function getPotentialFailedUsers():Promise<string[]> {
         let msSinceLapse = now - lapsedAt;
         let hrsSinceLapse = msToHrs(msSinceLapse);
 
-        if (hrsSinceLapse > lapsedHoursBeforeFailure) {
+        if (hrsSinceLapse > paymentLapsedGracePeriodHrs) {
             potentialLapsedUsers.push(userEmail);
         }
     }
