@@ -31,15 +31,23 @@ function promiseAdminUpdateUserAttributes(cognitoUsername:string, userAttributes
 }
 
 async function markUserFailed(cognitoUsername:string) {
+    return await zeroLimitsAndSetPaymentStatus(cognitoUsername, PaymentStatus.FAILED);
+}
+
+async function markUserCancelled(cognitoUsername:string) {
+    return await zeroLimitsAndSetPaymentStatus(cognitoUsername, PaymentStatus.CANCELLED);
+}
+
+async function zeroLimitsAndSetPaymentStatus(cognitoUsername:string, paymentStatus:PaymentStatus) {
     let userAttributes:AttributeType[] = [];
     dappLimitAttrNames.forEach(attrName => userAttributes.push({Name: attrName, Value: '0'}));
 
     let updatedPaymentStatusAttr:AttributeType = {
         Name: paymentStatusAttrName,
-        Value: PaymentStatus.FAILED
+        Value: paymentStatus
     }
     userAttributes.push(updatedPaymentStatusAttr);
-    console.log(`Marking user '${cognitoUsername}' FAILED in cognito and setting limits to 0`);
+    console.log(`Marking user '${cognitoUsername}' ${paymentStatus} in cognito and setting limits to 0`);
     await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
 }
 
@@ -104,5 +112,6 @@ interface UserSplit {
 }
 
 export default {
-    confirmFailedUsers : confirmFailedUsers
+    confirmFailedUsers : confirmFailedUsers,
+    markUserCancelled : markUserCancelled
 }

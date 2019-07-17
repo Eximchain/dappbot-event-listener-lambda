@@ -58,18 +58,7 @@ async function periodicCleanup() {
 
   for (let i in failedUsers) {
     let failedUser = failedUsers[i];
-
-    console.log('Cleaning Dapps for failed user: ', failedUser);
-    let dappsToClean = await dynamoDB.getDappNamesByOwner(failedUser);
-
-    for (let j in dappsToClean) {
-      let dappName = dappsToClean[j];
-      let sqsMessageBody = {
-        Method: deleteMethodName,
-        DappName: dappName
-      };
-      await sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
-    }
+    await cleanDappsForUser(failedUser);
     await dynamoDB.deleteLapsedUser(failedUser);
     console.log('Successfully Cleaned Dapps for failed user: ', failedUser);
   }
@@ -103,11 +92,33 @@ async function handlePaymentStatus(userEmail:string, status:PaymentStatus) {
       console.log(`Handling ${status} payment status for user ${userEmail}`);
       return await dynamoDB.putLapsedUser(userEmail);
     case PaymentStatus.ACTIVE:
-        console.log(`Handling ${status} payment status for user ${userEmail}`);
+      console.log(`Handling ${status} payment status for user ${userEmail}`);
       return await dynamoDB.deleteLapsedUser(userEmail);
+    case PaymentStatus.CANCELLED:
+      console.log(`Handling ${status} payment status for user ${userEmail}`);
+      return await handleCancelledUser(userEmail);
     default:
       console.log(`No Handler for payment status ${status}`);
   }
+}
+
+async function handleCancelledUser(userEmail:string) {
+  await cleanDappsForUser(userEmail);
+  await cognito.markUserCancelled(userEmail);
+}
+
+async function cleanDappsForUser(userEmail:string) {
+  console.log('Cleaning Dapps for user: ', userEmail);
+    let dappsToClean = await dynamoDB.getDappNamesByOwner(userEmail);
+
+    for (let j in dappsToClean) {
+      let dappName = dappsToClean[j];
+      let sqsMessageBody = {
+        Method: deleteMethodName,
+        DappName: dappName
+      };
+      await sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
+    }
 }
 
 function dnsNameFromDappName(dappName:string) {
