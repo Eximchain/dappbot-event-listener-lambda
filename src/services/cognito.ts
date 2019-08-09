@@ -30,12 +30,28 @@ function promiseAdminUpdateUserAttributes(cognitoUsername:string, userAttributes
     return addAwsPromiseRetries(() => cognito.adminUpdateUserAttributes(params).promise(), maxRetries);
 }
 
+async function markUserActive(cognitoUsername:string) {
+    return await setPaymentStatus(cognitoUsername, PaymentStatus.ACTIVE);
+}
+
 async function markUserFailed(cognitoUsername:string) {
     return await zeroLimitsAndSetPaymentStatus(cognitoUsername, PaymentStatus.FAILED);
 }
 
 async function markUserCancelled(cognitoUsername:string) {
     return await zeroLimitsAndSetPaymentStatus(cognitoUsername, PaymentStatus.CANCELLED);
+}
+
+async function markUserLapsed(cognitoUsername:string) {
+    return await setPaymentStatus(cognitoUsername, PaymentStatus.LAPSED);
+}
+
+async function setPaymentStatus(cognitoUsername:string, paymentStatus:PaymentStatus) {
+    let userAttributes:AttributeType[] = [{
+        Name : paymentStatusAttrName,
+        Value : paymentStatus
+    }]
+    return await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
 }
 
 async function zeroLimitsAndSetPaymentStatus(cognitoUsername:string, paymentStatus:PaymentStatus) {
@@ -48,7 +64,7 @@ async function zeroLimitsAndSetPaymentStatus(cognitoUsername:string, paymentStat
     }
     userAttributes.push(updatedPaymentStatusAttr);
     console.log(`Marking user '${cognitoUsername}' ${paymentStatus} in cognito and setting limits to 0`);
-    await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
+    return await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
 }
 
 async function confirmFailedUsers(potentialFailedUsers:string[]):Promise<UserSplit> {
@@ -112,6 +128,5 @@ interface UserSplit {
 }
 
 export default {
-    confirmFailedUsers : confirmFailedUsers,
-    markUserCancelled : markUserCancelled
+    confirmFailedUsers, markUserCancelled, markUserLapsed, markUserActive
 }
