@@ -87,15 +87,13 @@ async function enterpriseGithubCommitJob({ data, id }:CodePipelineJob) {
 }
 
 async function handlePaymentStatus(userEmail:string, status:PaymentStatus) {
+  console.log(`Handling ${status} payment status for user ${userEmail}`);
   switch (status) {
     case PaymentStatus.LAPSED:
-      console.log(`Handling ${status} payment status for user ${userEmail}`);
-      return await dynamoDB.putLapsedUser(userEmail);
+      return await handleLapsedUser(userEmail);
     case PaymentStatus.ACTIVE:
-      console.log(`Handling ${status} payment status for user ${userEmail}`);
-      return await dynamoDB.deleteLapsedUser(userEmail);
+      return await handleActiveUser(userEmail);
     case PaymentStatus.CANCELLED:
-      console.log(`Handling ${status} payment status for user ${userEmail}`);
       return await handleCancelledUser(userEmail);
     default:
       console.log(`No Handler for payment status ${status}`);
@@ -103,22 +101,34 @@ async function handlePaymentStatus(userEmail:string, status:PaymentStatus) {
 }
 
 async function handleCancelledUser(userEmail:string) {
-  await cleanDappsForUser(userEmail);
-  await cognito.markUserCancelled(userEmail);
+  const dynamoPromise = cleanDappsForUser(userEmail);
+  const cognitoPromise = cognito.markUserCancelled(userEmail);
+  return await Promise.all([dynamoPromise, cognitoPromise]);
+}
+
+async function handleLapsedUser(userEmail:string) {
+  const dynamoPromise = dynamoDB.putLapsedUser(userEmail);
+  const cognitoPromise = cognito.markUserLapsed(userEmail);
+  return await Promise.all([dynamoPromise, cognitoPromise])
+}
+
+async function handleActiveUser(userEmail:string) {
+  const dynamoPromise = dynamoDB.deleteLapsedUser(userEmail);
+  const cognitoPromise = cognito.markUserActive(userEmail);
+  return await Promise.all([dynamoPromise, cognitoPromise]);
 }
 
 async function cleanDappsForUser(userEmail:string) {
   console.log('Cleaning Dapps for user: ', userEmail);
     let dappsToClean = await dynamoDB.getDappNamesByOwner(userEmail);
-
-    for (let j in dappsToClean) {
-      let dappName = dappsToClean[j];
+    let sqsPromises = dappsToClean.map((dappName) => {
       let sqsMessageBody = {
-        Method: deleteMethodName,
-        DappName: dappName
-      };
-      await sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
-    }
+        Method : deleteMethodName,
+        DappName : dappName
+      }
+      return sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
+    })
+    return Promise.all(sqsPromises);
 }
 
 function dnsNameFromDappName(dappName:string) {
