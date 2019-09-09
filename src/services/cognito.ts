@@ -6,7 +6,6 @@ const cognito = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'
 
 const paymentStatusAttrName = 'custom:payment_status';
 const dappLimitAttrNames = [
-    'custom:num_dapps',
     'custom:standard_limit',
     'custom:professional_limit',
     'custom:enterprise_limit'

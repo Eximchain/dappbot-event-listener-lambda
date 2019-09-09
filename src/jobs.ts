@@ -1,11 +1,10 @@
 import { PaymentStatus } from '@eximchain/dappbot-types/spec/user';
+import { Operations } from '@eximchain/dappbot-types/spec/dapp';
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
 import cognito from './services/cognito';
 const { cloudfront, dynamoDB, s3, sqs, codepipeline, sendgrid, github } = services;
-
-const deleteMethodName = 'delete';
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -123,10 +122,10 @@ async function cleanDappsForUser(userEmail:string) {
     let dappsToClean = await dynamoDB.getDappNamesByOwner(userEmail);
     let sqsPromises = dappsToClean.map((dappName) => {
       let sqsMessageBody = {
-        Method : deleteMethodName,
+        Method : Operations.DELETE,
         DappName : dappName
       }
-      return sqs.sendMessage(deleteMethodName, JSON.stringify(sqsMessageBody));
+      return sqs.sendMessage(Operations.DELETE, JSON.stringify(sqsMessageBody));
     })
     return Promise.all(sqsPromises);
 }

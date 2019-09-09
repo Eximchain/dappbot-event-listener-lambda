@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/Eximchain/dappbot-event-listener-lambda#readme",
   "dependencies": {
-    "@eximchain/dappbot-types": "file:../dappbot-types",
+    "@eximchain/dappbot-types": "^1.1.0",
     "@octokit/rest": "^16.28.1",
     "@sendgrid/mail": "^6.4.0",
     "@types/node": "^12.6.8",
