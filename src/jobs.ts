@@ -1,4 +1,4 @@
-import { PaymentStatus } from './common';
+import { PaymentStatus } from '@eximchain/dappbot-types/spec/user';
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';

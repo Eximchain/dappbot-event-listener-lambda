@@ -14,22 +14,6 @@ export const defaultTags:ResourceTag[] = [
     }
 ];
 
-export enum DappStates {
-    CREATING = 'CREATING',
-    BUILDING_DAPP = 'BUILDING_DAPP',
-    AVAILABLE = 'AVAILABLE',
-    DELETING = 'DELETING',
-    FAILED = 'FAILED',
-    DEPOSED = 'DEPOSED'
-}
-
-export enum PaymentStatus {
-    ACTIVE = 'ACTIVE',
-    LAPSED = 'LAPSED',
-    FAILED = 'FAILED',
-    CANCELLED = 'CANCELLED'
-}
-
 /*
 Returns a Promise that rejects with reason after msDelay milliseconds
 */

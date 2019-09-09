@@ -1,5 +1,6 @@
+import Dapp from '@eximchain/dappbot-types/spec/dapp';
 import { PutItemInputAttributeMap, AttributeMap } from "aws-sdk/clients/dynamodb";
-import { addAwsPromiseRetries, DappStates } from '../common';
+import { addAwsPromiseRetries } from '../common';
 import { AWS, dappTableName, lapsedUsersTableName, paymentLapsedGracePeriodHrs } from '../env';
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
@@ -13,7 +14,7 @@ function serializeDdbKey(dappName:string) {
 async function promiseSetDappAvailable(dappName:string) {
     let dbResponse = await promiseGetDappItem(dappName);
     let dbItem = dbResponse.Item as AttributeMap;
-    dbItem.State.S = DappStates.AVAILABLE;
+    dbItem.State.S = Dapp.States.AVAILABLE;
 
     return promisePutRawDappItem(dbItem);
 }
@@ -21,7 +22,7 @@ async function promiseSetDappAvailable(dappName:string) {
 async function promiseSetDappFailed(dappName:string) {
     let dbResponse = await promiseGetDappItem(dappName);
     let dbItem = dbResponse.Item as AttributeMap;
-    dbItem.State.S = DappStates.FAILED;
+    dbItem.State.S = Dapp.States.FAILED;
 
     return promisePutRawDappItem(dbItem);
 }
@@ -34,14 +35,14 @@ function promiseSetItemBuilding(dbItem:PutItemInputAttributeMap, cloudfrontDistr
         dbItem.CloudfrontDnsName = {S: cloudfrontDns};
     }
 
-    dbItem.State.S = DappStates.BUILDING_DAPP;
+    dbItem.State.S = Dapp.States.BUILDING_DAPP;
 
     return promisePutRawDappItem(dbItem);
 }
 
 // TODO: Combine with SetDapp method
 function promiseSetItemAvailable(dbItem:PutItemInputAttributeMap) {
-    dbItem.State.S = DappStates.AVAILABLE;
+    dbItem.State.S = Dapp.States.AVAILABLE;
 
     return promisePutRawDappItem(dbItem);
 }

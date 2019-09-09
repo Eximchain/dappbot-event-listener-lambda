@@ -1,5 +1,6 @@
 import { AWS, cognitoUserPoolId } from '../env';
-import { addAwsPromiseRetries, PaymentStatus } from '../common';
+import { PaymentStatus } from '@eximchain/dappbot-types/spec/user';
+import { addAwsPromiseRetries } from '../common';
 import { AttributeType } from 'aws-sdk/clients/cognitoidentityserviceprovider';
 const cognito = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'});
 
