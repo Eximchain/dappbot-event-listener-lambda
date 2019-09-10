@@ -1,8 +1,7 @@
-import assert from 'assert';
 import uuidv4 from 'uuid';
 import { addAwsPromiseRetries } from '../common';
 import { AWS } from '../env';
-import { DistributionConfig, ListDistributionsResult, AliasList, Tag } from 'aws-sdk/clients/cloudfront';
+import { ListDistributionsResult, Tag } from 'aws-sdk/clients/cloudfront';
 const cloudfront = new AWS.CloudFront({apiVersion: '2018-11-05'});
 
 function promiseGetCloudfrontDistributionConfig(distroId:string) {
