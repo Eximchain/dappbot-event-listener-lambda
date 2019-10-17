@@ -5,5 +5,6 @@ import github from './github';
 import s3 from './s3';
 import sqs from './sqs';
 import sendgrid from './sendgrid';
+import * as segment from './segment';
 
-export default { cloudfront, codepipeline, dynamoDB, github, s3, sqs, sendgrid };
+export default { cloudfront, codepipeline, dynamoDB, github, s3, sqs, sendgrid, segment };

@@ -4,7 +4,7 @@ import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
 import cognito from './services/cognito';
-const { cloudfront, dynamoDB, s3, sqs, codepipeline, sendgrid, github } = services;
+const { cloudfront, dynamoDB, s3, sqs, codepipeline, sendgrid, github, segment } = services;
 
 // View a sample JSON event from a CodePipeline here:
 //
@@ -102,19 +102,25 @@ async function handlePaymentStatus(userEmail:string, status:PaymentStatus) {
 async function handleCancelledUser(userEmail:string) {
   const dynamoPromise = cleanDappsForUser(userEmail);
   const cognitoPromise = cognito.markUserCancelled(userEmail);
-  return await Promise.all([dynamoPromise, cognitoPromise]);
+  return await Promise.all([dynamoPromise, cognitoPromise]).then(() => {
+    segment.trackSubscriptionCancelled(userEmail);
+  });
 }
 
 async function handleLapsedUser(userEmail:string) {
   const dynamoPromise = dynamoDB.putLapsedUser(userEmail);
   const cognitoPromise = cognito.markUserLapsed(userEmail);
-  return await Promise.all([dynamoPromise, cognitoPromise])
+  return await Promise.all([dynamoPromise, cognitoPromise]).then(() => {
+    segment.trackSubscriptionLapsed(userEmail);
+  })
 }
 
 async function handleActiveUser(userEmail:string) {
   const dynamoPromise = dynamoDB.deleteLapsedUser(userEmail);
   const cognitoPromise = cognito.markUserActive(userEmail);
-  return await Promise.all([dynamoPromise, cognitoPromise]);
+  return await Promise.all([dynamoPromise, cognitoPromise]).then(() => {
+    segment.trackSubscriptionRestored(userEmail)
+  });
 }
 
 async function cleanDappsForUser(userEmail:string) {
