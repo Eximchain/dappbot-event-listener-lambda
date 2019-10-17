@@ -17,7 +17,8 @@ export const cognitoUserPoolId = process.env.COGNITO_USER_POOL as string;
 export const sendgridApiKey = process.env.SENDGRID_API_KEY as string;
 export const githubToken = process.env.GITHUB_TOKEN as string;
 export const sqsQueue = process.env.SQS_QUEUE as string;
-export const segmentWriteKey = process.env.SEGMENT_WRITE_KEY as string;
+export const segmentWriteKey = process.env.SEGMENT_NODEJS_WRITE_KEY as string;
+export const apiUrl = process.env.API_URL as string;
 
 const paymentLapsedGracePeriodHrsStr = process.env.PAYMENT_LAPSED_GRACE_PERIOD_HRS as string;
 export const paymentLapsedGracePeriodHrs = Number(paymentLapsedGracePeriodHrsStr);
