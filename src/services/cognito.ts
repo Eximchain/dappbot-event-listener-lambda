@@ -1,5 +1,6 @@
 import { AWS, cognitoUserPoolId } from '../env';
 import { PaymentStatus } from '@eximchain/dappbot-types/spec/user';
+import { freeTierStripePlan } from '@eximchain/dappbot-types/spec/methods/payment';
 import { addAwsPromiseRetries } from '../common';
 import { AttributeType } from 'aws-sdk/clients/cognitoidentityserviceprovider';
 const cognito = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'});
@@ -32,6 +33,10 @@ function promiseAdminUpdateUserAttributes(cognitoUsername:string, userAttributes
 
 async function markUserActive(cognitoUsername:string) {
     return await setPaymentStatus(cognitoUsername, PaymentStatus.ACTIVE);
+}
+
+async function markUserActiveFreeTier(cognitoUsername:string) {
+    return await limitsToFreeTierAndSetPaymentStatus(cognitoUsername, PaymentStatus.ACTIVE);
 }
 
 async function markUserFailed(cognitoUsername:string) {
@@ -67,10 +72,36 @@ async function zeroLimitsAndSetPaymentStatus(cognitoUsername:string, paymentStat
     return await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
 }
 
+function freeTierLimitFromCognitoAttrName(attrName:string) {
+    switch (attrName) {
+        case 'custom:standard_limit':
+            return freeTierStripePlan().standard.toString();
+        case 'custom:professional_limit':
+            return freeTierStripePlan().professional.toString();
+        case 'custom:enterprise_limit':
+            return freeTierStripePlan().enterprise.toString();
+        default:
+            return '0';
+    }
+}
+
+async function limitsToFreeTierAndSetPaymentStatus(cognitoUsername:string, paymentStatus:PaymentStatus) {
+    let userAttributes:AttributeType[] = [];
+    dappLimitAttrNames.forEach(attrName => userAttributes.push({Name: attrName, Value: freeTierLimitFromCognitoAttrName(attrName)}));
+
+    let updatedPaymentStatusAttr:AttributeType = {
+        Name: paymentStatusAttrName,
+        Value: paymentStatus
+    }
+    userAttributes.push(updatedPaymentStatusAttr);
+    console.log(`Marking user '${cognitoUsername}' ${paymentStatus} in cognito and setting limits to free tier`);
+    return await promiseAdminUpdateUserAttributes(cognitoUsername, userAttributes);
+}
+
 async function confirmFailedUsers(potentialFailedUsers:string[]):Promise<UserSplit> {
     let splitUsers = await splitPotentialFailedUsers(potentialFailedUsers);
     let failedUsers = splitUsers.Failed;
-    await markFailedUsers(failedUsers);
+    await markUsersFreeTier(failedUsers);
     return splitUsers;
 }
 
@@ -116,9 +147,18 @@ async function splitPotentialFailedUsers(potentialFailedUsers:string[]):Promise<
 }
 
 async function markFailedUsers(failedUsers:string[]) {
+    // Set limits to free tier and mark active instead
     for (let i in failedUsers) {
         let user = failedUsers[i];
         await markUserFailed(user)
+    }
+}
+
+async function markUsersFreeTier(users:string[]) {
+    // Set limits to free tier and mark active instead
+    for (let i in users) {
+        let user = users[i];
+        await markUserActiveFreeTier(user)
     }
 }
 

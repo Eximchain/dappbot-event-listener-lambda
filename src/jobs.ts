@@ -1,5 +1,6 @@
 import { PaymentStatus } from '@eximchain/dappbot-types/spec/user';
 import { Operations } from '@eximchain/dappbot-types/spec/dapp';
+import { freeTierStripePlan } from '@eximchain/dappbot-types/spec/methods/payment';
 import { CodePipelineJob } from './lambda-event-types';
 import { dnsRoot } from './env';
 import services from './services';
@@ -57,7 +58,7 @@ async function periodicCleanup() {
 
   for (let i in failedUsers) {
     let failedUser = failedUsers[i];
-    await cleanDappsForUser(failedUser);
+    await reduceDappsToFreeTier(failedUser);
     await dynamoDB.deleteLapsedUser(failedUser);
     console.log('Successfully Cleaned Dapps for failed user: ', failedUser);
   }
@@ -128,6 +129,29 @@ async function cleanDappsForUser(userEmail:string) {
       return sqs.sendMessage(Operations.DELETE, JSON.stringify(sqsMessageBody));
     })
     return Promise.all(sqsPromises);
+}
+
+async function reduceDappsToFreeTier(userEmail:string) {
+  console.log("Reducing dapps to free tier for user: ", userEmail);
+  // TODO: Handle non-standard dapps
+  let dapps = await dynamoDB.getDappUpdateTimesByOwner(userEmail);
+  // Sort oldest dapps at the end of the list
+  let sortedDapps = dapps.sort((a,b) => b.UpdatedAt.getTime() - a.UpdatedAt.getTime());
+  let dappsToClean:string[] = [];
+  while (sortedDapps.length > freeTierStripePlan().standard) {
+    let dappToDelete = sortedDapps.pop();
+    if (!dappToDelete) return; // Should only happen if sortedDapps is empty
+    dappsToClean.push(dappToDelete.DappName);
+  }
+  if (!dappsToClean) return;
+  let sqsPromises = dappsToClean.map((dappName) => {
+    let sqsMessageBody = {
+      Method : Operations.DELETE,
+      DappName : dappName
+    }
+    return sqs.sendMessage(Operations.DELETE, JSON.stringify(sqsMessageBody));
+  })
+  return Promise.all(sqsPromises);
 }
 
 function dnsNameFromDappName(dappName:string) {

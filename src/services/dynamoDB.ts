@@ -4,6 +4,11 @@ import { addAwsPromiseRetries } from '../common';
 import { AWS, dappTableName, lapsedUsersTableName, paymentLapsedGracePeriodHrs } from '../env';
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
+interface DappUpdateTime {
+    DappName: string
+    UpdatedAt: Date
+}
+
 function serializeDdbKey(dappName:string) {
     let keyItem = {
         'DappName': {S: dappName}
@@ -112,6 +117,22 @@ async function getDappNamesByOwner(owner:string):Promise<string[]> {
     return dappList;
 }
 
+async function getDappUpdateTimesByOwner(owner:string):Promise<DappUpdateTime[]> {
+    let dappList:DappUpdateTime[] = [];
+    let itemsByOwnerResponse = await promiseGetItemsByOwner(owner);
+    let itemsByOwner = itemsByOwnerResponse.Items;
+    if (!itemsByOwner) {
+        return dappList;
+    }
+    for (let i in itemsByOwner) {
+        let item = itemsByOwner[i];
+        let dappName = item.DappName.S as string;
+        let updatedAt = new Date(item.UpdatedAt.S as string);
+        dappList.push({DappName: dappName, UpdatedAt: updatedAt});
+    }
+    return dappList;
+}
+
 function serializeLapsedUserItem(userEmail:string) {
     let now = new Date().toISOString();
     // Required Params
@@ -203,5 +224,6 @@ export default {
     putLapsedUser : promisePutLapsedUser,
     deleteLapsedUser : promiseDeleteLapsedUser,
     getPotentialFailedUsers : getPotentialFailedUsers,
-    getDappNamesByOwner : getDappNamesByOwner
+    getDappNamesByOwner : getDappNamesByOwner,
+    getDappUpdateTimesByOwner : getDappUpdateTimesByOwner
 }
